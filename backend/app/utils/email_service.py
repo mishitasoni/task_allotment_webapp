@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+BREVO_SENDER_EMAIL = os.getenv("BREVO_SENDER_EMAIL", "taskallotment298@gmail.com")
 
 
 def send_account_email(receiver_email, trainee_name, trainee_email, password):
@@ -20,7 +21,7 @@ def send_account_email(receiver_email, trainee_name, trainee_email, password):
     payload = {
         "sender": {
             "name": "Task Allotment System",
-            "email": "taskallotment298@gmail.com"
+            "email": BREVO_SENDER_EMAIL
         },
         "to": [
             {

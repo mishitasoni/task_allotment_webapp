@@ -25,7 +25,7 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
         print("Sending email...")
 
         send_account_email(
-            receiver_email="mish.soni.verma@gmail.com",
+            receiver_email="mahimadangi78@gmail.com",
             trainee_name=user.name,
             trainee_email=user.email,
             password=user.password
