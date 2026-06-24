@@ -45,6 +45,37 @@ function TaskForm({ addTask, users, assignedTo, setAssignedTo }) {
 
   const handleEtaChange = (e) => {
     const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      if (yearPart) {
+        if (yearPart.length > 4) {
+          setEta("");
+          setErrors((prev) => ({ ...prev, eta: "ETA year must be between 2026 and 2031." }));
+          return;
+        }
+        if (yearPart.length === 4) {
+          const year = parseInt(yearPart, 10);
+          const isIntermediateYear = (yearStr) => {
+            if (/^000[2-9]$/.test(yearStr)) return true;
+            if (/^00[2-9][0-9]$/.test(yearStr)) return true;
+            if (/^0[2-9][0-9]{2}$/.test(yearStr)) return true;
+            return false;
+          };
+          if (!isNaN(year)) {
+            if (year < 2026 && !isIntermediateYear(yearPart)) {
+              setEta("");
+              setErrors((prev) => ({ ...prev, eta: "ETA year must be between 2026 and 2031." }));
+              return;
+            }
+            if (year > 2031) {
+              setEta("");
+              setErrors((prev) => ({ ...prev, eta: "ETA year must be between 2026 and 2031." }));
+              return;
+            }
+          }
+        }
+      }
+    }
     setEta(val);
     if (val) {
       const err = validateEtaValue(val);
@@ -60,6 +91,18 @@ function TaskForm({ addTask, users, assignedTo, setAssignedTo }) {
 
   const handleEtaBlur = (e) => {
     const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      const year = parseInt(yearPart, 10);
+      const date = new Date(val);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (isNaN(year) || year < 2026 || year > 2031 || isNaN(date.getTime()) || date < today) {
+        setEta("");
+        setErrors((prev) => ({ ...prev, eta: "ETA date/year must be between 2026 and 2031 and cannot be in the past." }));
+        return;
+      }
+    }
     const err = validateEtaValue(val);
     if (err) {
       setErrors((prev) => ({ ...prev, eta: err }));
@@ -120,11 +163,6 @@ function TaskForm({ addTask, users, assignedTo, setAssignedTo }) {
     const etaError = validateEtaValue(eta);
     if (etaError) {
       newErrors.eta = etaError;
-    }
-    const titleRegex= /[a-zA-Z]/;
-    if(!titleRegex.test(taskName)){
-      alert("task tiltle must contain letters");
-      return;
     }
 
     if (updateUrl && !validateURL(updateUrl)) {
