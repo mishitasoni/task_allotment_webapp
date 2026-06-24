@@ -107,17 +107,7 @@ function AdminDashboard() {
   }, []);
 
   const createUser = async () => {
-    try {if (!name.trim()|| !email.trim() || !
-          password.trim()){
-            alert("all fields are required");
-            return;
-          }
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-      if (!emailRegex.test(email.trim())) {
-        alert("Please enter a valid email address");
-        return;
-      }
+    try {
       await API.post("/create-user", {
         name,
         email,
@@ -240,6 +230,193 @@ function AdminDashboard() {
   const getUserNameById = (id) => {
     const found = users.find(u => Number(u.id) === Number(id));
     return found ? found.name : `ID: ${id}`;
+  };
+
+  const getTodayDateString = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const handleFilterEtaStartChange = (e) => {
+    const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      if (yearPart) {
+        if (yearPart.length > 4) {
+          setFilterEtaStart("");
+          return;
+        }
+        if (yearPart.length === 4) {
+          const year = parseInt(yearPart, 10);
+          const isIntermediateYear = (yearStr) => {
+            if (/^000[2-9]$/.test(yearStr)) return true;
+            if (/^00[2-9][0-9]$/.test(yearStr)) return true;
+            if (/^0[2-9][0-9]{2}$/.test(yearStr)) return true;
+            return false;
+          };
+          const date = new Date(val);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (!isNaN(year)) {
+            if ((year < 2026 || date < today) && !isIntermediateYear(yearPart)) {
+              setFilterEtaStart("");
+              return;
+            }
+            if (year > 2031) {
+              setFilterEtaStart("");
+              return;
+            }
+          }
+        }
+      }
+      if (filterEtaEnd && new Date(filterEtaEnd) < new Date(val)) {
+        setFilterEtaEnd("");
+      }
+    }
+    setFilterEtaStart(val);
+  };
+
+  const handleFilterEtaStartBlur = (e) => {
+    const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      const year = parseInt(yearPart, 10);
+      const date = new Date(val);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (isNaN(year) || year < 2026 || year > 2031 || isNaN(date.getTime()) || date < today) {
+        setFilterEtaStart("");
+        return;
+      }
+      if (filterEtaEnd && new Date(filterEtaEnd) < new Date(val)) {
+        setFilterEtaEnd("");
+      }
+    }
+  };
+
+  const handleFilterEtaEndChange = (e) => {
+    const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      if (yearPart) {
+        if (yearPart.length > 4) {
+          setFilterEtaEnd("");
+          return;
+        }
+        if (yearPart.length === 4) {
+          const year = parseInt(yearPart, 10);
+          const isIntermediateYear = (yearStr) => {
+            if (/^000[2-9]$/.test(yearStr)) return true;
+            if (/^00[2-9][0-9]$/.test(yearStr)) return true;
+            if (/^0[2-9][0-9]{2}$/.test(yearStr)) return true;
+            return false;
+          };
+          const date = new Date(val);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const minDate = filterEtaStart ? new Date(filterEtaStart) : today;
+          if (!isNaN(year)) {
+            if ((year < 2026 || date < minDate) && !isIntermediateYear(yearPart)) {
+              setFilterEtaEnd("");
+              return;
+            }
+            if (year > 2031) {
+              setFilterEtaEnd("");
+              return;
+            }
+          }
+        }
+      }
+    }
+    setFilterEtaEnd(val);
+  };
+
+  const handleFilterEtaEndBlur = (e) => {
+    const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      const year = parseInt(yearPart, 10);
+      const date = new Date(val);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const minDate = filterEtaStart ? new Date(filterEtaStart) : today;
+      if (isNaN(year) || year < 2026 || year > 2031 || isNaN(date.getTime()) || date < minDate) {
+        setFilterEtaEnd("");
+      }
+    }
+  };
+
+  const handleModalEtaChange = (e) => {
+    const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      if (yearPart) {
+        if (yearPart.length > 4) {
+          setModalEta("");
+          setModalErrors(prev => ({ ...prev, eta: "ETA year must be between 2026 and 2031." }));
+          return;
+        }
+        if (yearPart.length === 4) {
+          const year = parseInt(yearPart, 10);
+          const isIntermediateYear = (yearStr) => {
+            if (/^000[2-9]$/.test(yearStr)) return true;
+            if (/^00[2-9][0-9]$/.test(yearStr)) return true;
+            if (/^0[2-9][0-9]{2}$/.test(yearStr)) return true;
+            return false;
+          };
+          if (!isNaN(year)) {
+            if (year < 2026 && !isIntermediateYear(yearPart)) {
+              setModalEta("");
+              setModalErrors(prev => ({ ...prev, eta: "ETA year must be between 2026 and 2031." }));
+              return;
+            }
+            if (year > 2031) {
+              setModalEta("");
+              setModalErrors(prev => ({ ...prev, eta: "ETA year must be between 2026 and 2031." }));
+              return;
+            }
+          }
+        }
+      }
+    }
+    setModalEta(val);
+    if (val) {
+      const error = validateEtaValue(val);
+      setModalErrors(prev => ({ ...prev, eta: error }));
+    } else {
+      if (e.target.validity && e.target.validity.badInput) {
+        setModalErrors(prev => ({ ...prev, eta: "Please enter a valid ETA date." }));
+      } else {
+        setModalErrors(prev => ({ ...prev, eta: "" }));
+      }
+    }
+  };
+
+  const handleModalEtaBlur = (e) => {
+    const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      const year = parseInt(yearPart, 10);
+      const date = new Date(val);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (isNaN(year) || year < 2026 || year > 2031 || isNaN(date.getTime()) || date < today) {
+        setModalEta("");
+        setModalErrors(prev => ({ ...prev, eta: "ETA date/year must be between 2026 and 2031 and cannot be in the past." }));
+        return;
+      }
+    }
+    const error = validateEtaValue(val);
+    if (error) {
+      setModalErrors(prev => ({ ...prev, eta: error }));
+    } else if (e.target.validity && e.target.validity.badInput) {
+      setModalErrors(prev => ({ ...prev, eta: "Please enter a valid ETA date." }));
+    } else {
+      setModalErrors(prev => ({ ...prev, eta: "" }));
+    }
   };
 
   const clearFilters = () => {
@@ -395,7 +572,9 @@ function AdminDashboard() {
               <input 
                 type="date" 
                 value={filterEtaStart} 
-                onChange={(e) => setFilterEtaStart(e.target.value)} 
+                min={getTodayDateString()}
+                onChange={handleFilterEtaStartChange} 
+                onBlur={handleFilterEtaStartBlur}
               />
             </div>
             <div className="filter-group">
@@ -403,7 +582,9 @@ function AdminDashboard() {
               <input 
                 type="date" 
                 value={filterEtaEnd} 
-                onChange={(e) => setFilterEtaEnd(e.target.value)} 
+                min={filterEtaStart || getTodayDateString()}
+                onChange={handleFilterEtaEndChange} 
+                onBlur={handleFilterEtaEndBlur}
               />
             </div>
             <button className="clear-filters-btn" onClick={clearFilters}>
@@ -630,31 +811,8 @@ function AdminDashboard() {
                     value={modalEta} 
                     min={minDateTime}
                     max={maxDateTime}
-                    onChange={(e) => {
-                      const val = e.target.value;
-                      setModalEta(val);
-                      if (val) {
-                        const error = validateEtaValue(val);
-                        setModalErrors(prev => ({ ...prev, eta: error }));
-                      } else {
-                        if (e.target.validity && e.target.validity.badInput) {
-                          setModalErrors(prev => ({ ...prev, eta: "Please enter a valid ETA date." }));
-                        } else {
-                          setModalErrors(prev => ({ ...prev, eta: "" }));
-                        }
-                      }
-                    }} 
-                    onBlur={(e) => {
-                      const val = e.target.value;
-                      const error = validateEtaValue(val);
-                      if (error) {
-                        setModalErrors(prev => ({ ...prev, eta: error }));
-                      } else if (e.target.validity && e.target.validity.badInput) {
-                        setModalErrors(prev => ({ ...prev, eta: "Please enter a valid ETA date." }));
-                      } else {
-                        setModalErrors(prev => ({ ...prev, eta: "" }));
-                      }
-                    }}
+                    onChange={handleModalEtaChange} 
+                    onBlur={handleModalEtaBlur}
                   />
                   {modalErrors.eta && <span className="error-message">{modalErrors.eta}</span>}
                 </div>

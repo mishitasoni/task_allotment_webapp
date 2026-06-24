@@ -80,6 +80,123 @@ function TraineeDashboard() {
     }
   };
 
+  const getTodayDateString = () => {
+    const today = new Date();
+    const yyyy = today.getFullYear();
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const dd = String(today.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  const handleFilterEtaStartChange = (e) => {
+    const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      if (yearPart) {
+        if (yearPart.length > 4) {
+          setFilterEtaStart("");
+          return;
+        }
+        if (yearPart.length === 4) {
+          const year = parseInt(yearPart, 10);
+          const isIntermediateYear = (yearStr) => {
+            if (/^000[2-9]$/.test(yearStr)) return true;
+            if (/^00[2-9][0-9]$/.test(yearStr)) return true;
+            if (/^0[2-9][0-9]{2}$/.test(yearStr)) return true;
+            return false;
+          };
+          const date = new Date(val);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          if (!isNaN(year)) {
+            if ((year < 2026 || date < today) && !isIntermediateYear(yearPart)) {
+              setFilterEtaStart("");
+              return;
+            }
+            if (year > 2031) {
+              setFilterEtaStart("");
+              return;
+            }
+          }
+        }
+      }
+      if (filterEtaEnd && new Date(filterEtaEnd) < new Date(val)) {
+        setFilterEtaEnd("");
+      }
+    }
+    setFilterEtaStart(val);
+  };
+
+  const handleFilterEtaStartBlur = (e) => {
+    const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      const year = parseInt(yearPart, 10);
+      const date = new Date(val);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (isNaN(year) || year < 2026 || year > 2031 || isNaN(date.getTime()) || date < today) {
+        setFilterEtaStart("");
+        return;
+      }
+      if (filterEtaEnd && new Date(filterEtaEnd) < new Date(val)) {
+        setFilterEtaEnd("");
+      }
+    }
+  };
+
+  const handleFilterEtaEndChange = (e) => {
+    const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      if (yearPart) {
+        if (yearPart.length > 4) {
+          setFilterEtaEnd("");
+          return;
+        }
+        if (yearPart.length === 4) {
+          const year = parseInt(yearPart, 10);
+          const isIntermediateYear = (yearStr) => {
+            if (/^000[2-9]$/.test(yearStr)) return true;
+            if (/^00[2-9][0-9]$/.test(yearStr)) return true;
+            if (/^0[2-9][0-9]{2}$/.test(yearStr)) return true;
+            return false;
+          };
+          const date = new Date(val);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          const minDate = filterEtaStart ? new Date(filterEtaStart) : today;
+          if (!isNaN(year)) {
+            if ((year < 2026 || date < minDate) && !isIntermediateYear(yearPart)) {
+              setFilterEtaEnd("");
+              return;
+            }
+            if (year > 2031) {
+              setFilterEtaEnd("");
+              return;
+            }
+          }
+        }
+      }
+    }
+    setFilterEtaEnd(val);
+  };
+
+  const handleFilterEtaEndBlur = (e) => {
+    const val = e.target.value;
+    if (val) {
+      const yearPart = val.split("-")[0];
+      const year = parseInt(yearPart, 10);
+      const date = new Date(val);
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      const minDate = filterEtaStart ? new Date(filterEtaStart) : today;
+      if (isNaN(year) || year < 2026 || year > 2031 || isNaN(date.getTime()) || date < minDate) {
+        setFilterEtaEnd("");
+      }
+    }
+  };
+
   const clearFilters = () => {
     setSearchTerm("");
     setFilterPriority("");
@@ -214,7 +331,9 @@ function TraineeDashboard() {
               <input 
                 type="date" 
                 value={filterEtaStart} 
-                onChange={(e) => setFilterEtaStart(e.target.value)} 
+                min={getTodayDateString()}
+                onChange={handleFilterEtaStartChange} 
+                onBlur={handleFilterEtaStartBlur}
               />
             </div>
             <div className="filter-group">
@@ -222,7 +341,9 @@ function TraineeDashboard() {
               <input 
                 type="date" 
                 value={filterEtaEnd} 
-                onChange={(e) => setFilterEtaEnd(e.target.value)} 
+                min={filterEtaStart || getTodayDateString()}
+                onChange={handleFilterEtaEndChange} 
+                onBlur={handleFilterEtaEndBlur}
               />
             </div>
             <button className="clear-filters-btn" onClick={clearFilters}>
